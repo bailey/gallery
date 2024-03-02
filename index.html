@@ -5,6 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Three.js Gallery Room</title>
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon3.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ojuju:wght@200..800&display=swap" rel="stylesheet">
+
     <style>
         body {
             margin: 0;
@@ -17,9 +22,28 @@
 </head>
 
 <body>
-    <!-- <script src="https://cdn.skypack.dev/three@0.129.0/build/three.module.js"></script>
-<script src="https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js"></script> -->
+
+    <div id="blocker">
+        <div class="flex-container">
+            <div class="flex-child left">
+                <div id="image">
+                    <img src="assets/images/favicon2.ico" style="width:300px;">
+                </div>
+            </div>
+            <div class="flex-child right">
+                <div id="instructions">
+                    <p style="font-size:50px; font-weight:700">
+                        Click to explore
+                    </p>
+                    <p style="font-weight:300">
+                        Move: WASD<br />
+                        Look: MOUSE<br />
+                        Esc: Pause
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="importmap">
         {
@@ -80,9 +104,27 @@
 
             // Controls
             controls = new PointerLockControls(camera, renderer.domElement);
+
+            const blocker = document.getElementById('blocker');
+            const instructions = document.getElementById('instructions');
+
             document.addEventListener('click', function () {
                 controls.lock();
             }, false);
+
+            controls.addEventListener('lock', function () {
+
+                instructions.style.display = 'none';
+                blocker.style.display = 'none';
+                document.getElementById('octicon').style.filter="invert(100%)";
+            });
+
+            controls.addEventListener('unlock', function () {
+
+                blocker.style.display = 'block';
+                instructions.style.display = '';
+                document.getElementById('octicon').style.filter="invert(0%)";
+            });
 
             // scene.add(controls.getObject());
 
@@ -187,13 +229,13 @@
             const columnGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
             const columnMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
             const column = new THREE.Mesh(columnGeometry, columnMaterial);
-            column.position.set(5, 1, 0); // Position it on the floor
+            column.position.set(3, 1, 5); // Position it on the floor
             scene.add(column);
 
             // load model
             const bowieloader = new GLTFLoader();
             bowieloader.load('assets/models/thisisbowie2.gltf', function (gltf) {
-                gltf.scene.position.set(5, 2, 0); // Adjust position to be on top of the column
+                gltf.scene.position.set(3, 2, 5); // Adjust position to be on top of the column
                 gltf.scene.rotation.x += 1.5;
                 gltf.scene.scale.set(.5, .5, .5);
                 scene.add(gltf.scene);
@@ -290,6 +332,6 @@
     </script>
 </body>
 
-<footer><a href="https://github.com/bailey/gallery"><img src='./assets/octicon.png' width="40">
+<footer><a href="https://github.com/bailey/gallery"><img src='./assets/octicon_white.png' id="octicon" width="40">
 
 </html>
