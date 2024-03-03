@@ -16,7 +16,7 @@ body {
 }
 
 .flex-child {
-  flex: 1;
+  flex: 2;
 }
 
 .flex-child:first-child {
