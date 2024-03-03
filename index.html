@@ -59,6 +59,7 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { VRButton } from 'three/addons/webxr/VRButton.js';
 
         let camera, scene, renderer, controls;
         let bowieModel, shieldModel, pusheenModel, froggyModel;
@@ -94,6 +95,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
+
+            document.body.appendChild( VRButton.createButton( renderer ) );
             
 
             // Lighting
