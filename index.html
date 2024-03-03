@@ -61,6 +61,7 @@
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
         let camera, scene, renderer, controls;
+        let bowieModel, shieldModel, pusheenModel, froggyModel;
 
         let moveForward = false;
         let moveBackward = false;
@@ -235,10 +236,11 @@
             // load model
             const bowieloader = new GLTFLoader();
             bowieloader.load('assets/models/thisisbowie2.gltf', function (gltf) {
-                gltf.scene.position.set(3, 2, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(3, 2.2, 5); // Adjust position to be on top of the column
                 gltf.scene.rotation.x += 1.5;
                 gltf.scene.scale.set(.5, .5, .5);
                 scene.add(gltf.scene);
+                bowieModel = gltf.scene;
             }, undefined, function (error) {
                 console.error(error);
             });
@@ -256,10 +258,11 @@
             // load model
             const shieldloader = new GLTFLoader();
             shieldloader.load('assets/models/ganonisabitch.gltf', function (gltf) {
-                gltf.scene.position.set(5, 2, 5.5); // Adjust position to be on top of the column
+                gltf.scene.position.set(5, 2.2, 5.5); // Adjust position to be on top of the column
                 // gltf.scene.rotation.x += 1.5;
                 gltf.scene.scale.set(.5, .5, .5);
                 scene.add(gltf.scene);
+                shieldModel = gltf.scene;
             }, undefined, function (error) {
                 console.error(error);
             });
@@ -276,10 +279,11 @@
             // load model
             const pusheenloader = new GLTFLoader();
             pusheenloader.load('assets/models/pusheen.gltf', function (gltf) {
-                gltf.scene.position.set(1, 1.95, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(1, 2.15, 5); // Adjust position to be on top of the column
                 // gltf.scene.rotation.x += 1.5;
                 gltf.scene.scale.set(.5, .5, .5);
                 scene.add(gltf.scene);
+                pusheenModel = gltf.scene;
             }, undefined, function (error) {
                 console.error(error);
             });
@@ -296,10 +300,11 @@
             // load model
             const froggyloader = new GLTFLoader();
             froggyloader.load('assets/models/disfroggy.gltf', function (gltf) {
-                gltf.scene.position.set(-1, 2.6, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(-1, 2.8, 5); // Adjust position to be on top of the column
                 // gltf.scene.rotation.x += 1.5;
                 gltf.scene.scale.set(.5, .5, .5);
                 scene.add(gltf.scene);
+                froggyModel = gltf.scene;
             }, undefined, function (error) {
                 console.error(error);
             });
@@ -357,6 +362,10 @@
             }
             prevTime = time;
 
+            if (bowieModel) bowieModel.rotation.z += 0.01;
+            if (shieldModel) shieldModel.rotation.y += 0.01;
+            if (pusheenModel) pusheenModel.rotation.y += 0.01;
+            if (froggyModel) froggyModel.rotation.y += 0.01;
             render();
         }
 
