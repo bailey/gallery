@@ -257,9 +257,9 @@
 
             // load model
             const shieldloader = new GLTFLoader();
-            shieldloader.load('assets/models/ganonisabitch.gltf', function (gltf) {
-                gltf.scene.position.set(5, 2.2, 5.5); // Adjust position to be on top of the column
-                // gltf.scene.rotation.x += 1.5;
+            shieldloader.load('assets/models/ganon.gltf', function (gltf) {
+                gltf.scene.position.set(5, 2.2, 5); // Adjust position to be on top of the column
+                gltf.scene.rotation.x += 4.75;
                 gltf.scene.scale.set(.5, .5, .5);
                 scene.add(gltf.scene);
                 shieldModel = gltf.scene;
@@ -363,7 +363,7 @@
             prevTime = time;
 
             if (bowieModel) bowieModel.rotation.z += 0.01;
-            if (shieldModel) shieldModel.rotation.y += 0.01;
+            if (shieldModel) shieldModel.rotation.z += 0.01;
             if (pusheenModel) pusheenModel.rotation.y += 0.01;
             if (froggyModel) froggyModel.rotation.y += 0.01;
             render();
