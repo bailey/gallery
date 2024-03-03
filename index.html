@@ -59,7 +59,7 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { VRButton } from 'three/addons/webxr/VRButton.js';
+        // import { VRButton } from 'three/addons/webxr/VRButton.js';
 
         let camera, scene, renderer, controls;
         let bowieModel, shieldModel, pusheenModel, froggyModel;
@@ -93,11 +93,11 @@
             // Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.xr.enabled = true;
+            // renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            let vrButton = VRButton.createButton( renderer );
-            document.body.appendChild( vrButton );
+            // let vrButton = VRButton.createButton( renderer );
+            // document.body.appendChild( vrButton );
             // vrButton.addEventListener('click', function () {
             //     controls.lock();
             // }, false);
