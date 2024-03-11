@@ -62,7 +62,7 @@
         import { VRButton } from 'three/addons/webxr/VRButton.js';
 
         let camera, scene, renderer, controls;
-        let bowieModel, shieldModel, pusheenModel, froggyModel;
+        let bowieModel, shieldModel, pusheenModel, froggyModel, riverModel;
 
         let moveForward = false;
         let moveBackward = false;
@@ -336,6 +336,21 @@
                 console.error(error);
             });
 
+
+            // river ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+            // load model
+            const riverloader = new GLTFLoader();
+            riverloader.load('assets/models/riverscene.gltf', function (gltf) {
+                gltf.scene.position.set(-8, -.5, 9); // Adjust position to be on top of the column
+                gltf.scene.rotation.y += 1.5;
+                gltf.scene.scale.set(.8, .8, .8);
+                scene.add(gltf.scene);
+                riverModel = gltf.scene;
+            }, undefined, function (error) {
+                console.error(error);
+            });
+
         }
 
         function animate() {
@@ -393,6 +408,7 @@
             if (shieldModel) shieldModel.rotation.z += 0.01;
             if (pusheenModel) pusheenModel.rotation.y += 0.01;
             if (froggyModel) froggyModel.rotation.y += 0.01;
+            if (riverModel) riverModel.rotation.y += 0.005;
             render();
         }
 
