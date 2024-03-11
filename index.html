@@ -48,7 +48,7 @@
     <script type="importmap">
         {
           "imports": {
-            "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+            "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
             "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
           }
         }
@@ -60,17 +60,24 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
         import { VRButton } from 'three/addons/webxr/VRButton.js';
+        import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+        import { XRHandModelFactory } from 'three/addons/webxr/XRHandModelFactory.js';
 
         let camera, scene, renderer, controls;
         let bowieModel, shieldModel, pusheenModel, froggyModel;
+        let hand1, hand2;
+        let controller1, controller2;
+        let controllerGrip1, controllerGrip2;
+        let raycaster;
+        let floor;
+        let baseReferenceSpace;
+        let INTERSECTED;
 
         let moveForward = false;
         let moveBackward = false;
         let moveLeft = false;
         let moveRight = false;
         let canJump = false;
-
-        let raycaster;
 
         let prevTime = performance.now();
         const velocity = new THREE.Vector3();
@@ -87,20 +94,87 @@
             scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
             // Camera setup
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.set(2, 1.6, 10); // Adjust height to match your scene scale
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000);
+            //camera.position.set(2, 1.6, -10); // Adjust height to match your scene scale
 
             // Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.addEventListener('sessionstart', () => {
+                baseReferenceSpace = renderer.xr.getReferenceSpace();
+                console.log(baseReferenceSpace);
+                console.log(help);
+            });
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            let vrButton = VRButton.createButton( renderer );
-            document.body.appendChild( vrButton );
+            let vrButton = VRButton.createButton(renderer);
+            document.body.appendChild(vrButton);
             vrButton.addEventListener('click', function () {
-                controls.lock();
+                //controls.lock();
             }, false);
+
+            // hands
+            controller1 = renderer.xr.getController(0);
+            scene.add(controller1);
+
+            controller2 = renderer.xr.getController(1);
+            scene.add(controller2);
+
+            const controllerModelFactory = new XRControllerModelFactory();
+            const handModelFactory = new XRHandModelFactory();
+
+            // Hand 1
+            controllerGrip1 = renderer.xr.getControllerGrip(0);
+            controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
+            scene.add(controllerGrip1);
+
+            hand1 = renderer.xr.getHand(0);
+            hand1.add(handModelFactory.createHandModel(hand1));
+
+            scene.add(hand1);
+
+            // Hand 2
+            controllerGrip2 = renderer.xr.getControllerGrip(1);
+            controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2));
+            scene.add(controllerGrip2);
+
+            hand2 = renderer.xr.getHand(1);
+            hand2.add(handModelFactory.createHandModel(hand2));
+            scene.add(hand2);
+
+            const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, - 1)]);
+
+            const line = new THREE.Line(geometry);
+            line.name = 'line';
+            line.scale.z = 5;
+
+            //controller1.add( line.clone() );
+            controller2.add(line.clone());
+
+            raycaster = new THREE.Raycaster();
+
+            hand2.addEventListener('pinchend', function () {
+
+                if (INTERSECTED == undefined) return;
+
+                console.log(INTERSECTED);
+                //camera.position = intersections[0].point;
+                //camera.position.x = intersections[0].point.x;
+                //camera.position.z = intersections[0].point.z;
+
+                //const offsetPosition = {x: intersections[0].x, y: intersections[0].y, z: intersections[0].z};
+                const offsetPosition = { x: -INTERSECTED.x, y: 0.0, z: -INTERSECTED.z };
+                //const offsetPosition = {x: 0.0, y: 0.0, z: -2.0};
+                const offsetRotation = { x: 0, y: 0, z: 0, w: 1 };
+                const transform = new XRRigidTransform(offsetPosition, offsetRotation);
+                const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace(transform);
+
+                renderer.xr.setReferenceSpace(teleportSpaceOffset);
+
+
+            });
+
 
             // Lighting
             const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
@@ -110,8 +184,8 @@
 
 
             // spotlight
-            const spotLight = new THREE.SpotLight( 0xffffff );
-            spotLight.position.set( 3, 1.5, 4 );
+            const spotLight = new THREE.SpotLight(0xffffff);
+            spotLight.position.set(3, 1.5, 4);
             // spotLight.map = new THREE.TextureLoader().load( url );
 
             spotLight.castShadow = true;
@@ -123,9 +197,9 @@
             // spotLight.shadow.camera.far = 4000;
             // spotLight.shadow.camera.fov = 30;
 
-            scene.add( spotLight );
+            scene.add(spotLight);
 
-            
+
 
             // Room creation
             createRoom();
@@ -144,14 +218,14 @@
 
                 instructions.style.display = 'none';
                 blocker.style.display = 'none';
-                document.getElementById('octicon').style.filter="invert(100%)";
+                document.getElementById('octicon').style.filter = "invert(100%)";
             });
 
             controls.addEventListener('unlock', function () {
 
                 blocker.style.display = 'block';
                 instructions.style.display = '';
-                document.getElementById('octicon').style.filter="invert(0%)";
+                document.getElementById('octicon').style.filter = "invert(0%)";
             });
 
             // scene.add(controls.getObject());
@@ -239,7 +313,7 @@
             const wallMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF }); // White
 
             // Floor
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), floorMaterial);
+            floor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), floorMaterial);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
@@ -250,22 +324,26 @@
             wall.position.set(0, 2, -5); // Adjust position according to your room dimensions
             // scene.add(wall);
 
+            const column_radius = 0.2;
+            const column_height = 0.8;
+            const model_height = column_height + 0.4;
+
+            const columnGeometry = new THREE.CylinderGeometry(column_radius, column_radius, column_height, 32);
+            const columnMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
 
             // bowie ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
             // Column (as a simple cylinder for this example)
-            const columnGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
-            const columnMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
             const column = new THREE.Mesh(columnGeometry, columnMaterial);
-            column.position.set(3, 1, 5); // Position it on the floor
+            column.position.set(3, column_height / 2.0, -5); // Position it on the floor
             scene.add(column);
 
             // load model
             const bowieloader = new GLTFLoader();
             bowieloader.load('assets/models/thisisbowie2.gltf', function (gltf) {
-                gltf.scene.position.set(3, 2.2, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(3, model_height, -5); // Adjust position to be on top of the column
                 gltf.scene.rotation.x += 1.5;
-                gltf.scene.scale.set(.5, .5, .5);
+                gltf.scene.scale.set(.2, .2, .2);
                 scene.add(gltf.scene);
                 bowieModel = gltf.scene;
             }, undefined, function (error) {
@@ -276,18 +354,16 @@
             // ganon's shield ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
             // Column (as a simple cylinder for this example)
-            const columnGeometry1 = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
-            const columnMaterial1 = new THREE.MeshBasicMaterial({ color: 0x808080 });
-            const column1 = new THREE.Mesh(columnGeometry1, columnMaterial1);
-            column1.position.set(5, 1, 5); // Position it on the floor
+            const column1 = new THREE.Mesh(columnGeometry, columnMaterial);
+            column1.position.set(5, column_height / 2.0, -5); // Position it on the floor
             scene.add(column1);
 
             // load model
             const shieldloader = new GLTFLoader();
             shieldloader.load('assets/models/ganon.gltf', function (gltf) {
-                gltf.scene.position.set(5, 2.2, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(5, model_height, -5); // Adjust position to be on top of the column
                 gltf.scene.rotation.x += 4.75;
-                gltf.scene.scale.set(.5, .5, .5);
+                gltf.scene.scale.set(.2, .2, .2);
                 scene.add(gltf.scene);
                 shieldModel = gltf.scene;
             }, undefined, function (error) {
@@ -297,18 +373,16 @@
             // pusheen ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
             // Column (as a simple cylinder for this example)
-            const columnGeometry2 = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
-            const columnMaterial2 = new THREE.MeshBasicMaterial({ color: 0x808080 });
-            const column2 = new THREE.Mesh(columnGeometry2, columnMaterial2);
-            column2.position.set(1, 1, 5); // Position it on the floor
+            const column2 = new THREE.Mesh(columnGeometry, columnMaterial);
+            column2.position.set(1, column_height / 2.0, -5); // Position it on the floor
             scene.add(column2);
 
             // load model
             const pusheenloader = new GLTFLoader();
             pusheenloader.load('assets/models/pusheen.gltf', function (gltf) {
-                gltf.scene.position.set(1, 2.15, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(1, model_height - 0.1, -5); // Adjust position to be on top of the column
                 // gltf.scene.rotation.x += 1.5;
-                gltf.scene.scale.set(.5, .5, .5);
+                gltf.scene.scale.set(.2, .2, .2);
                 scene.add(gltf.scene);
                 pusheenModel = gltf.scene;
             }, undefined, function (error) {
@@ -318,18 +392,16 @@
             // froggy ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
             // Column (as a simple cylinder for this example)
-            const columnGeometry3 = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
-            const columnMaterial3 = new THREE.MeshBasicMaterial({ color: 0x808080 });
-            const column3 = new THREE.Mesh(columnGeometry3, columnMaterial3);
-            column3.position.set(-1, 1, 5); // Position it on the floor
+            const column3 = new THREE.Mesh(columnGeometry, columnMaterial);
+            column3.position.set(-1, column_height / 2.0, -5); // Position it on the floor
             scene.add(column3);
 
             // load model
             const froggyloader = new GLTFLoader();
             froggyloader.load('assets/models/disfroggy.gltf', function (gltf) {
-                gltf.scene.position.set(-1, 2.8, 5); // Adjust position to be on top of the column
+                gltf.scene.position.set(-1, model_height + 0.1, -5); // Adjust position to be on top of the column
                 // gltf.scene.rotation.x += 1.5;
-                gltf.scene.scale.set(.5, .5, .5);
+                gltf.scene.scale.set(.2, .2, .2);
                 scene.add(gltf.scene);
                 froggyModel = gltf.scene;
             }, undefined, function (error) {
@@ -339,6 +411,9 @@
         }
 
         function animate() {
+            renderer.setAnimationLoop(render);
+            return;
+
             requestAnimationFrame(animate);
 
             const time = performance.now();
@@ -389,14 +464,25 @@
             // }
             prevTime = time;
 
-            if (bowieModel) bowieModel.rotation.z += 0.01;
-            if (shieldModel) shieldModel.rotation.z += 0.01;
-            if (pusheenModel) pusheenModel.rotation.y += 0.01;
-            if (froggyModel) froggyModel.rotation.y += 0.01;
             render();
         }
 
         function render() {
+
+            INTERSECTED = undefined;
+
+            if (bowieModel) bowieModel.rotation.z += 0.01;
+            if (shieldModel) shieldModel.rotation.z += 0.01;
+            if (pusheenModel) pusheenModel.rotation.y += 0.01;
+            if (froggyModel) froggyModel.rotation.y += 0.01;
+
+            raycaster.setFromXRController(controller2);
+            const intersects = raycaster.intersectObjects([floor]);
+            if (intersects.length > 0) {
+                INTERSECTED = intersects[0].point;
+            }
+
+
             renderer.render(scene, camera);
         }
 
