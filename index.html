@@ -62,7 +62,7 @@
         import { VRButton } from 'three/addons/webxr/VRButton.js';
 
         let camera, scene, renderer, controls;
-        let bowieModel, shieldModel, pusheenModel, froggyModel, riverModel;
+        let bowieModel, shieldModel, pusheenModel, froggyModel, riverModel, wingmanModel, pupModel;
 
         let moveForward = false;
         let moveBackward = false;
@@ -351,6 +351,48 @@
                 console.error(error);
             });
 
+            // wingman ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+            // Column (as a simple cylinder for this example)
+            const columnGeometry4 = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+            const columnMaterial4 = new THREE.MeshBasicMaterial({ color: 0x808080 });
+            const column4 = new THREE.Mesh(columnGeometry4, columnMaterial4);
+            column4.position.set(7, 1, 5); // Position it on the floor
+            scene.add(column4);
+
+            // load model
+            const wingloader = new GLTFLoader();
+            wingloader.load('assets/models/wingman.gltf', function (gltf) {
+                gltf.scene.position.set(7, 2.2, 5); // Adjust position to be on top of the column
+                // gltf.scene.rotation.x += 1.5;
+                gltf.scene.scale.set(.5, .5, .5);
+                scene.add(gltf.scene);
+                wingmanModel = gltf.scene;
+            }, undefined, function (error) {
+                console.error(error);
+            });
+
+            // pup ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
+            // Column (as a simple cylinder for this example)
+            const columnGeometry5 = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+            const columnMaterial5 = new THREE.MeshBasicMaterial({ color: 0x808080 });
+            const column5 = new THREE.Mesh(columnGeometry5, columnMaterial5);
+            column5.position.set(9, 1, 5); // Position it on the floor
+            scene.add(column5);
+
+            // load model
+            const puploader = new GLTFLoader();
+            puploader.load('assets/models/pup.gltf', function (gltf) {
+                gltf.scene.position.set(9, 2.2, 5); // Adjust position to be on top of the column
+                // gltf.scene.rotation.x += 1.5;
+                gltf.scene.scale.set(.35, .35, .35);
+                scene.add(gltf.scene);
+                pupModel = gltf.scene;
+            }, undefined, function (error) {
+                console.error(error);
+            });
+
         }
 
         function animate() {
@@ -409,6 +451,9 @@
             if (pusheenModel) pusheenModel.rotation.y += 0.01;
             if (froggyModel) froggyModel.rotation.y += 0.01;
             if (riverModel) riverModel.rotation.y += 0.005;
+            if (wingmanModel) wingmanModel.rotation.y += 0.01;
+            if (pupModel) pupModel.rotation.y += 0.01;
+
             render();
         }
 
